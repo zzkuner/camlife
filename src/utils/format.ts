@@ -4,7 +4,7 @@
  * @returns Formatted exposure time string
  */
 export function formatExposureTime(exposureTime: number | null): string {
-  if (!exposureTime) return ""
+  if (!exposureTime) return ''
   if (exposureTime >= 1) return `${exposureTime}s`
   const denominator = Math.round(1 / exposureTime)
   return `1/${denominator}s`
@@ -16,7 +16,7 @@ export function formatExposureTime(exposureTime: number | null): string {
  * @returns Formatted date string in "YYYY-MM-DD" format for zh-CN locale
  */
 export function formatDateTime(timestamp: string | null): string {
-  if (!timestamp) return "unknown"
+  if (!timestamp) return 'unknown'
 
   // Convert to Date object, handling both string and number inputs
   const date = new Date(
@@ -25,11 +25,11 @@ export function formatDateTime(timestamp: string | null): string {
 
   // Check if the date is valid
   return isNaN(date.getTime())
-    ? "Invalid Date"
-    : date.toLocaleDateString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
+    ? 'Invalid Date'
+    : date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
       })
 }
 
@@ -57,11 +57,11 @@ function convertCoordinate(coordinate: number, isLatitude: boolean): string {
   const seconds = ((abs - degrees - minutes / 60) * 3600).toFixed(0)
   const direction = isLatitude
     ? coordinate < 0
-      ? "S"
-      : "N"
+      ? 'S'
+      : 'N'
     : coordinate < 0
-      ? "W"
-      : "E"
+      ? 'W'
+      : 'E'
 
   return `${degrees}°${minutes}'${seconds}"${direction}`
 }

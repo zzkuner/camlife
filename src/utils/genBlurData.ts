@@ -1,5 +1,5 @@
-import { decode, encode } from "blurhash"
-import sharp from "sharp"
+import { decode, encode } from 'blurhash'
+import sharp from 'sharp'
 
 const MAX_DIMENSION = 32
 
@@ -17,7 +17,7 @@ export async function generateBlurData(
     // Resize the image to speed up Blurhash encoding
     const resizedBuffer = await sharp(imageBuffer)
       .resize(MAX_DIMENSION, MAX_DIMENSION, {
-        fit: "inside",
+        fit: 'inside',
       })
       .raw()
       .ensureAlpha()
@@ -45,9 +45,9 @@ export async function generateBlurData(
       .toBuffer()
 
     // Return the blurred image as a base64-encoded WebP string
-    return `data:image/webp;base64,${blurredImageBuffer.toString("base64")}`
+    return `data:image/webp;base64,${blurredImageBuffer.toString('base64')}`
   } catch (error) {
-    console.error("Error generating blur data:", error)
+    console.error('Error generating blur data:', error)
     throw error
   }
 }

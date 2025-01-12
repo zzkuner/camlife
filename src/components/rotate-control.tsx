@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { CirclePause, CirclePlay } from "lucide-react"
+import { CirclePause, CirclePlay } from 'lucide-react'
 
 interface RotateControlProps {
   isRotating: boolean
@@ -15,14 +15,14 @@ export function RotateControl({
     <div onClick={() => setIsRotating(!isRotating)}>
       {isRotating ? (
         <CirclePause
-          className="cursor-pointer"
+          className='cursor-pointer'
           size={22}
           strokeWidth={2.25}
           absoluteStrokeWidth
         />
       ) : (
         <CirclePlay
-          className="cursor-pointer"
+          className='cursor-pointer'
           size={22}
           strokeWidth={2.25}
           absoluteStrokeWidth

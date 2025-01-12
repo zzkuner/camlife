@@ -1,13 +1,21 @@
-import { GeistSans } from "geist/font/sans"
-import { NextIntlClientProvider } from "next-intl"
-import { getMessages } from "next-intl/server"
-import { notFound } from "next/navigation"
-import Script from "next/script"
-import { Toaster } from "react-hot-toast"
-import { ThemeProvider } from "~/components/theme-provider"
-import { routing, type Locale } from "~/i18n/routing"
-import "~/styles/globals.css"
-import { TRPCReactProvider } from "~/trpc/react"
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
+import { Geist } from 'next/font/google'
+import { notFound } from 'next/navigation'
+import Script from 'next/script'
+import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from '~/components/theme-provider'
+import { env } from '~/env'
+import { type Locale, routing } from '~/i18n/routing'
+import { cn } from '~/lib/utils'
+import '~/styles/globals.css'
+import { TRPCReactProvider } from '~/trpc/react'
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap',
+})
 
 export default async function LocaleLayout({
   children,
@@ -26,15 +34,14 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${GeistSans.variable}`}
       suppressHydrationWarning
     >
-      <body>
+      <body className={cn(geist.variable, geist.className)}>
         <NextIntlClientProvider messages={messages}>
           <TRPCReactProvider>
             <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
+              attribute='class'
+              defaultTheme='system'
               enableSystem
               disableTransitionOnChange
             >
@@ -44,12 +51,14 @@ export default async function LocaleLayout({
           </TRPCReactProvider>
         </NextIntlClientProvider>
 
-        <Script
-          defer
-          src="https://umami.guoqi.dev/script.js"
-          data-website-id="e3df813a-bc42-4da9-af6d-664b0b56250d"
-          data-domains="camlife.app"
-        />
+        {env.NODE_ENV !== 'development' && (
+          <Script
+            defer
+            src='https://umami.guoqi.dev/script.js'
+            data-website-id='e3df813a-bc42-4da9-af6d-664b0b56250d'
+            data-domains='camlife.app'
+          />
+        )}
       </body>
     </html>
   )

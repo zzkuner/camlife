@@ -1,18 +1,18 @@
-"use client"
+'use client'
 
-import clsx from "clsx"
-import { SlideshowLightbox, initLightboxJS } from "lightbox.js-react"
-import { useTheme } from "next-themes"
-import Image from "next/image"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { useInView } from "react-intersection-observer"
-import { Loading } from "~/components/loading"
-import { PhotoInfo } from "~/components/photo-info"
-import { CardBody, CardContainer, CardItem } from "~/components/ui/3d-card"
-import { useTab } from "~/store/useTab"
-import { useView } from "~/store/useView"
-import { api } from "~/trpc/react"
-import { type TabType } from "~/types/tabs"
+import clsx from 'clsx'
+import { SlideshowLightbox, initLightboxJS } from 'lightbox.js-react'
+import { useTheme } from 'next-themes'
+import Image from 'next/image'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { Loading } from '~/components/loading'
+import { PhotoInfo } from '~/components/photo-info'
+import { CardBody, CardContainer, CardItem } from '~/components/ui/3d-card'
+import { useTab } from '~/store/useTab'
+import { useView } from '~/store/useView'
+import { api } from '~/trpc/react'
+import type { TabType } from '~/types/tabs'
 
 const getAdjustedDimensions = (width: number, height: number) =>
   height > width
@@ -26,32 +26,32 @@ export function View() {
   const [userLocation, setUserLocation] =
     useState<GeolocationCoordinates | null>(null)
   const [locationStatus, setLocationStatus] = useState<
-    "pending" | "granted" | "denied" | null
+    'pending' | 'granted' | 'denied' | null
   >(null)
   const { ref, inView } = useInView()
 
   useEffect(() => {
-    initLightboxJS("6CDB-34FD-F513-A6FC", "individual")
+    initLightboxJS('6CDB-34FD-F513-A6FC', 'individual')
   }, [])
 
   const getLocation = useCallback(() => {
-    if (tab !== "nearby" && tab !== "faraway") return
+    if (tab !== 'nearby' && tab !== 'faraway') return
 
-    setLocationStatus("pending")
-    if (!("geolocation" in navigator)) {
-      console.error("This browser does not support geolocation")
-      setLocationStatus("denied")
+    setLocationStatus('pending')
+    if (!('geolocation' in navigator)) {
+      console.error('This browser does not support geolocation')
+      setLocationStatus('denied')
       return
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation(position.coords)
-        setLocationStatus("granted")
+        setLocationStatus('granted')
       },
       (error) => {
-        console.error("Failed to get geolocation:", error.message)
-        setLocationStatus("denied")
+        console.error('Failed to get geolocation:', error.message)
+        setLocationStatus('denied')
       },
     )
   }, [tab])
@@ -69,7 +69,7 @@ export function View() {
     api.photos.getAllPhotos.useInfiniteQuery(
       {
         tab,
-        ...((tab === "nearby" || tab === "faraway") &&
+        ...((tab === 'nearby' || tab === 'faraway') &&
           userLocation && {
             location: `${userLocation.latitude},${userLocation.longitude}`,
           }),
@@ -78,10 +78,10 @@ export function View() {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         refetchOnWindowFocus: false,
-        staleTime: tab === "shuffle" ? 0 : 5 * 60 * 1000,
+        staleTime: tab === 'shuffle' ? 0 : 5 * 60 * 1000,
         enabled:
-          (tab !== "nearby" && tab !== "faraway") ||
-          locationStatus === "granted",
+          (tab !== 'nearby' && tab !== 'faraway') ||
+          locationStatus === 'granted',
       },
     )
 
@@ -98,10 +98,10 @@ export function View() {
 
   const isLoadingOrFetching =
     isLoading ||
-    (isFetchingNextPage && tab === "shuffle") ||
-    locationStatus === "pending"
+    (isFetchingNextPage && tab === 'shuffle') ||
+    locationStatus === 'pending'
 
-  const lightboxTheme = resolvedTheme === "dark" ? "night" : "day"
+  const lightboxTheme = resolvedTheme === 'dark' ? 'night' : 'day'
 
   const lightboxImages = useMemo(
     () => photos?.map(({ url }) => ({ src: url })),
@@ -110,15 +110,15 @@ export function View() {
 
   if (isLoadingOrFetching) {
     return (
-      <div className="flex h-[60vh] w-full items-center justify-center">
+      <div className='flex h-[60vh] w-full items-center justify-center'>
         <Loading />
       </div>
     )
   }
 
-  if ((tab === "nearby" || tab === "faraway") && locationStatus === "denied") {
+  if ((tab === 'nearby' || tab === 'faraway') && locationStatus === 'denied') {
     return (
-      <div className="flex h-[60vh] w-full items-center justify-center">
+      <div className='flex h-[60vh] w-full items-center justify-center'>
         <p>Location access denied. Unable to display relevant photos.</p>
       </div>
     )
@@ -126,29 +126,29 @@ export function View() {
 
   if (!photos || photos.length === 0) {
     return (
-      <div className="flex h-[60vh] w-full items-center justify-center">
+      <div className='flex h-[60vh] w-full items-center justify-center'>
         <p>No photos found.</p>
       </div>
     )
   }
 
   return (
-    <div className="max-w-[100vw] xl:px-48">
+    <div className='max-w-[100vw] xl:px-48'>
       <SlideshowLightbox
         key={view}
         theme={lightboxTheme}
         images={lightboxImages}
-        lightboxIdentifier="lightbox"
-        framework="next"
-        modalClose="clickOutside"
-        imgAnimation="imgDrag"
+        lightboxIdentifier='lightbox'
+        framework='next'
+        modalClose='clickOutside'
+        imgAnimation='imgDrag'
         showControls={false}
         fullScreen
         className={clsx({
-          "grid grid-cols-3 lg:grid-cols-4": view === "grid",
-          "columns-2 gap-0 md:columns-3 md:gap-6 xl:columns-4":
-            view === "waterfall",
-          "flex flex-col items-center": view === "feed",
+          'grid grid-cols-3 lg:grid-cols-4': view === 'grid',
+          'columns-2 gap-0 md:columns-3 md:gap-6 xl:columns-4':
+            view === 'waterfall',
+          'flex flex-col items-center': view === 'feed',
         })}
       >
         {photos.map((photo) => {
@@ -159,36 +159,48 @@ export function View() {
 
           const imageProps = {
             className: clsx({
-              "h-[100px] md:h-[200px] object-cover transition-transform duration-300 ease-in-out hover:scale-105":
-                view === "grid",
-              "md:rounded-xl hover:shadow-xl": view === "waterfall",
-              "xl:rounded-xl xl:shadow-xl xl:shadow-outline": view === "feed",
+              'h-[100px] object-cover transition-transform duration-300 ease-in-out hover:scale-105 md:h-[200px]':
+                view === 'grid',
+              'hover:shadow-xl md:rounded-xl': view === 'waterfall',
+              'xl:rounded-xl xl:shadow-outline xl:shadow-xl': view === 'feed',
             }),
             src: photo.url,
             width,
             height,
-            placeholder: "blur",
-            blurDataURL: photo.blurData ?? "",
-            loading: "lazy",
+            placeholder: 'blur',
+            blurDataURL: photo.blurData ?? '',
+            loading: 'lazy',
             style:
-              view === "grid" ? { objectFit: "cover" as const } : undefined,
-            "data-lightboxjs": "lightbox",
+              view === 'grid' ? { objectFit: 'cover' as const } : undefined,
+            'data-lightboxjs': 'lightbox',
           }
 
-          return view === "waterfall" ? (
-            <CardContainer containerClassName="py-0 md:mb-6" key={photo.uuid}>
-              <CardBody className="h-auto w-auto">
-                <CardItem translateZ="50">
-                  {/* @ts-expect-error eslint-disable-line*/}
-                  <Image {...imageProps} alt={photo.uuid} />
+          return view === 'waterfall' ? (
+            <CardContainer
+              containerClassName='py-0 md:mb-6'
+              key={photo.uuid}
+            >
+              <CardBody className='h-auto w-auto'>
+                <CardItem translateZ='50'>
+                  {/* @ts-expect-error*/}
+                  <Image
+                    {...imageProps}
+                    alt={photo.uuid}
+                  />
                 </CardItem>
               </CardBody>
             </CardContainer>
           ) : (
-            <div key={photo.uuid} className="flex flex-col items-center">
-              {/* @ts-expect-error eslint-disable-line*/}
-              <Image {...imageProps} alt={photo.uuid} />
-              {view === "feed" && <PhotoInfo {...photo} />}
+            <div
+              key={photo.uuid}
+              className='flex flex-col items-center'
+            >
+              {/* @ts-expect-error*/}
+              <Image
+                {...imageProps}
+                alt={photo.uuid}
+              />
+              {view === 'feed' && <PhotoInfo {...photo} />}
             </div>
           )
         })}
@@ -196,14 +208,17 @@ export function View() {
       {isFetchingNextPage && (
         <div
           className={clsx(
-            "mb-5 flex justify-center",
-            view !== "feed" && "mt-5 md:mt-10",
+            'mb-5 flex justify-center',
+            view !== 'feed' && 'mt-5 md:mt-10',
           )}
         >
           <Loading />
         </div>
       )}
-      <div ref={ref} className="h-1 w-full" />
+      <div
+        ref={ref}
+        className='h-1 w-full'
+      />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import sharp from "sharp"
+import sharp from 'sharp'
 
 /**
  * Compresses an image by resizing it and converting it to WebP format.

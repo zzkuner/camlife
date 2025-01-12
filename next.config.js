@@ -1,10 +1,10 @@
-import createNextIntlPlugin from "next-intl/plugin"
+import createNextIntlPlugin from 'next-intl/plugin'
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-await import("./src/env.js")
+await import('./src/env.js')
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -15,12 +15,22 @@ const nextConfig = {
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/i,
-      use: ["@svgr/webpack"],
+      use: ['@svgr/webpack'],
     })
     return config
   },
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
   images: {
-    remotePatterns: [{ hostname: "*.public.blob.vercel-storage.com" }],
+    remotePatterns: [{ hostname: '*.public.blob.vercel-storage.com' }],
   },
 }
 

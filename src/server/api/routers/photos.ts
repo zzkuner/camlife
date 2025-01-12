@@ -1,25 +1,25 @@
-import { type Prisma } from "@prisma/client"
-import { put } from "@vercel/blob"
-import fs from "fs/promises"
-import "mapbox-gl/dist/mapbox-gl.css"
-import { nanoid } from "nanoid"
-import os from "os"
-import path from "path"
-import { z } from "zod"
+import fs from 'node:fs/promises'
+import type { Prisma } from '@prisma/client'
+import { put } from '@vercel/blob'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import os from 'node:os'
+import path from 'node:path'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
 import {
   createTRPCRouter,
   // protectedProcedure,
   publicProcedure,
-} from "~/server/api/trpc"
-import { calculateDistance } from "~/utils/calculateDistance"
-import { compressImage } from "~/utils/compressImage"
-import { generateBlurData } from "~/utils/genBlurData"
+} from '~/server/api/trpc'
+import { calculateDistance } from '~/utils/calculateDistance'
+import { compressImage } from '~/utils/compressImage'
+import { generateBlurData } from '~/utils/genBlurData'
 
 export const photosRouter = createTRPCRouter({
   getAllPhotos: publicProcedure
     .input(
       z.object({
-        tab: z.enum(["essential", "recent", "shuffle", "nearby", "faraway"]),
+        tab: z.enum(['essential', 'recent', 'shuffle', 'nearby', 'faraway']),
         location: z.string().optional(),
         cursor: z.string().optional(),
         limit: z.number().default(20),
@@ -27,35 +27,35 @@ export const photosRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { tab, location, cursor, limit } = input
-      let photos
+      let photos = []
       let nextCursor: string | undefined
 
       const baseQuery: Prisma.photosFindManyArgs = {
         take: limit + 1,
         cursor: cursor ? { uuid: cursor } : undefined,
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       }
 
       const fetchPhotos = async (query: Prisma.photosFindManyArgs) =>
         ctx.db.photos.findMany(query)
 
       switch (tab) {
-        case "recent":
+        case 'recent':
           photos = await fetchPhotos({
             ...baseQuery,
-            orderBy: { takenAtNaive: "desc" },
+            orderBy: { takenAtNaive: 'desc' },
           })
           break
-        case "shuffle":
+        case 'shuffle':
           photos = await fetchPhotos(baseQuery)
           photos.sort(() => Math.random() - 0.5)
           break
-        case "nearby":
-        case "faraway":
+        case 'nearby':
+        case 'faraway': {
           if (!location) {
-            throw new Error("Location is required for nearby and faraway tabs")
+            throw new Error('Location is required for nearby and faraway tabs')
           }
-          const [userLat, userLon] = location.split(",").map(Number)
+          const [userLat, userLon] = location.split(',').map(Number)
           const allPhotos = await fetchPhotos({
             ...baseQuery,
             where: {
@@ -75,11 +75,12 @@ export const photosRouter = createTRPCRouter({
           }))
 
           photos.sort((a, b) =>
-            tab === "nearby"
+            tab === 'nearby'
               ? a.distance - b.distance
               : b.distance - a.distance,
           )
           break
+        }
         default:
           photos = await fetchPhotos(baseQuery)
       }
@@ -107,8 +108,8 @@ export const photosRouter = createTRPCRouter({
         height: { not: 0 },
         latitude: { not: 0 },
         longitude: { not: 0 },
-        url: { not: "" },
-        blurData: { not: "" },
+        url: { not: '' },
+        blurData: { not: '' },
       },
     })
   }),
@@ -123,7 +124,7 @@ export const photosRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { uploadId, chunkIndex, chunk } = input
-      const chunkBuffer = Buffer.from(chunk, "base64")
+      const chunkBuffer = Buffer.from(chunk, 'base64')
       const tempDir = path.join(os.tmpdir(), uploadId)
       await fs.mkdir(tempDir, { recursive: true })
       await fs.writeFile(path.join(tempDir, `chunk_${chunkIndex}`), chunkBuffer)
@@ -140,7 +141,8 @@ export const photosRouter = createTRPCRouter({
         const chunks = await fs.readdir(tempDir)
         chunks.sort(
           (a, b) =>
-            parseInt(a.split("_")[1] ?? "0") - parseInt(b.split("_")[1] ?? "0"),
+            Number.parseInt(a.split('_')[1] ?? '0') -
+            Number.parseInt(b.split('_')[1] ?? '0'),
         )
 
         const finalBuffer = Buffer.concat(
@@ -154,7 +156,7 @@ export const photosRouter = createTRPCRouter({
         const blurData = await generateBlurData(compressedBuffer)
 
         const blob = await put(`${uploadId}.webp`, compressedBuffer, {
-          access: "public",
+          access: 'public',
         })
 
         await fs.rm(tempDir, { recursive: true, force: true })
@@ -165,7 +167,7 @@ export const photosRouter = createTRPCRouter({
           blurData,
         }
       } catch (error) {
-        console.error("Error processing upload:", error)
+        console.error('Error processing upload:', error)
         await fs
           .rm(tempDir, { recursive: true, force: true })
           .catch(console.error)
@@ -202,10 +204,10 @@ export const photosRouter = createTRPCRouter({
         })
         return { success: true }
       } catch (error) {
-        console.error("Failed to create photo:", error)
+        console.error('Failed to create photo:', error)
         return {
           success: false,
-          error: "An error occurred while creating the photo",
+          error: 'An error occurred while creating the photo',
         }
       }
     }),

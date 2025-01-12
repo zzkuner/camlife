@@ -1,18 +1,18 @@
-import NextAuth from "next-auth"
-import createMiddleware from "next-intl/middleware"
-import { defaultLocale, locales } from "~/i18n/routing"
+import NextAuth from 'next-auth'
+import createMiddleware from 'next-intl/middleware'
+import { defaultLocale, locales } from '~/i18n/routing'
 import {
   DEFAULT_LOGIN_REDIRECT,
   apiAuthPrefix,
   authRoutes,
   protectedRoute,
-} from "~/routes"
-import authConfig from "~/server/auth/config"
+} from '~/routes'
+import authConfig from '~/server/auth/config'
 
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
-  localePrefix: "never",
+  localePrefix: 'never',
 })
 
 const { auth } = NextAuth(authConfig)
@@ -57,7 +57,7 @@ export const config = {
   // Optionally, don't invoke Middleware on some paths
   matcher: [
     // Skip all paths that should not be internationalized.
-    "/",
-    "/((?!api|_next/static|_next/image|img/|favicon.ico).*)",
+    '/',
+    '/((?!api|_next/static|_next/image|img/|favicon.ico).*)',
   ],
 }

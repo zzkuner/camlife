@@ -1,12 +1,9 @@
 {
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "always",
+    "source.organizeImports.biome": "explicit",
+    "quickfix.biome": "explicit"
   },
-  "i18n-ally.localesPaths": [
-    "src/messages"
-  ],
-  "cSpell.words": [
-    "clsx"
-  ],
+  "i18n-ally.localesPaths": ["messages", "src/i18n"],
+  "i18n-ally.keystyle": "nested",
+  "cSpell.words": ["clsx"]
 }
