@@ -1,10 +1,7 @@
 'use client'
 
-import clsx from 'clsx'
-import { SlideshowLightbox, initLightboxJS } from 'lightbox.js-react'
-import { useTheme } from 'next-themes'
 import Image from 'next/image'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { Loading } from '~/components/loading'
 import { PhotoInfo } from '~/components/photo-info'
@@ -12,16 +9,183 @@ import { CardBody, CardContainer, CardItem } from '~/components/ui/3d-card'
 import { useTab } from '~/store/useTab'
 import { useView } from '~/store/useView'
 import { api } from '~/trpc/react'
+import type { Photo } from '~/types/photo'
 import type { TabType } from '~/types/tabs'
+import 'yet-another-react-lightbox/styles.css'
+import Lightbox from 'yet-another-react-lightbox'
+import Counter from 'yet-another-react-lightbox/plugins/counter'
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
+import NextJsImage from '~/components/nextjs-image'
+import { cn } from '~/lib/utils'
+import 'yet-another-react-lightbox/plugins/counter.css'
 
 const getAdjustedDimensions = (width: number, height: number) =>
   height > width
     ? { width: Math.floor(800 * (width / height)), height: 800 }
     : { width, height }
 
+const MemoizedPhotoInfo = memo(PhotoInfo)
+
+const PhotoGallery = memo(
+  ({
+    photos,
+    view,
+    setIndex,
+  }: {
+    photos: Photo[]
+    view: string
+    setIndex: (index: number) => void
+  }) => {
+    const getContainerClassName = useCallback((view: string) => {
+      switch (view) {
+        case 'grid':
+          return 'grid grid-cols-3 lg:grid-cols-4'
+        case 'waterfall':
+          return 'columns-2 gap-0 md:columns-3 md:gap-6 xl:columns-4'
+        case 'feed':
+          return 'flex flex-col items-center'
+      }
+    }, [])
+
+    return (
+      <div className={cn(getContainerClassName(view), 'container')}>
+        {photos.map((photo, index) => {
+          const { width, height } = getAdjustedDimensions(
+            photo.width,
+            photo.height,
+          )
+
+          if (view === 'waterfall')
+            return (
+              <CardContainer
+                containerClassName='py-0 md:mb-6'
+                key={photo.uuid}
+              >
+                <CardBody className='h-auto w-auto'>
+                  <CardItem
+                    translateZ='50'
+                    className='cursor-pointer'
+                    onClick={() => setIndex(index)}
+                  >
+                    <ImageItem
+                      width={width}
+                      height={height}
+                      src={photo.url}
+                      bluerData={photo.blurData ?? ''}
+                      view={view}
+                    />
+                  </CardItem>
+                </CardBody>
+              </CardContainer>
+            )
+
+          return (
+            <div
+              key={photo.uuid}
+              className='flex flex-col items-center'
+            >
+              <div
+                onClick={() => setIndex(index)}
+                className='cursor-pointer'
+              >
+                <ImageItem
+                  width={width}
+                  height={height}
+                  src={photo.url}
+                  bluerData={photo.blurData ?? ''}
+                  view={view}
+                />
+              </div>
+              {view === 'feed' && <MemoizedPhotoInfo {...photo} />}
+            </div>
+          )
+        })}
+      </div>
+    )
+  },
+)
+
+const PhotoLightbox = memo(
+  ({
+    index,
+    slides,
+    onClose,
+    photos,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  }: {
+    index: number
+    slides: Array<{ src: string; width: number; height: number }>
+    onClose: () => void
+    photos: Photo[]
+    hasNextPage: boolean
+    isFetchingNextPage: boolean
+    fetchNextPage: () => void
+  }) => {
+    const handleView = useCallback(
+      ({ index: currentIndex }: { index: number }) => {
+        if (
+          currentIndex >= photos.length - 5 &&
+          hasNextPage &&
+          !isFetchingNextPage
+        ) {
+          void fetchNextPage()
+        }
+      },
+      [photos.length, hasNextPage, isFetchingNextPage, fetchNextPage],
+    )
+
+    return (
+      <Lightbox
+        render={{
+          slide: (props) => <NextJsImage {...props} />,
+        }}
+        index={index}
+        slides={slides}
+        open={index >= 0}
+        close={onClose}
+        plugins={[Zoom, Counter]}
+        counter={{ container: { style: { top: 'unset', bottom: 0 } } }}
+        on={{ view: handleView }}
+      />
+    )
+  },
+)
+
+const ImageItem = ({
+  src,
+  width,
+  height,
+  bluerData,
+  view,
+}: {
+  src: string
+  width: number
+  height: number
+  bluerData: string
+  view: string
+}) => (
+  <Image
+    alt=''
+    src={src}
+    width={width}
+    height={height}
+    placeholder='blur'
+    blurDataURL={bluerData ?? ''}
+    loading='lazy'
+    className={cn({
+      'h-[100px] object-cover transition-transform duration-300 ease-in-out hover:scale-105 md:h-[200px]':
+        view === 'grid',
+      'hover:shadow-xl md:rounded-xl': view === 'waterfall',
+      'xl:rounded-xl xl:shadow-outline xl:shadow-xl': view === 'feed',
+    })}
+    style={view === 'grid' ? { objectFit: 'cover' as const } : undefined}
+  />
+)
+
 export function View() {
   const { view } = useView()
-  const { resolvedTheme } = useTheme()
   const { tab } = useTab() as { tab: TabType }
   const [userLocation, setUserLocation] =
     useState<GeolocationCoordinates | null>(null)
@@ -29,10 +193,7 @@ export function View() {
     'pending' | 'granted' | 'denied' | null
   >(null)
   const { ref, inView } = useInView()
-
-  useEffect(() => {
-    initLightboxJS('6CDB-34FD-F513-A6FC', 'individual')
-  }, [])
+  const [index, setIndex] = useState(-1)
 
   const getLocation = useCallback(() => {
     if (tab !== 'nearby' && tab !== 'faraway') return
@@ -101,10 +262,10 @@ export function View() {
     (isFetchingNextPage && tab === 'shuffle') ||
     locationStatus === 'pending'
 
-  const lightboxTheme = resolvedTheme === 'dark' ? 'night' : 'day'
-
-  const lightboxImages = useMemo(
-    () => photos?.map(({ url }) => ({ src: url })),
+  const slides = useMemo(
+    () =>
+      photos?.map(({ url, width, height }) => ({ src: url, width, height })) ??
+      [],
     [photos],
   )
 
@@ -133,81 +294,26 @@ export function View() {
   }
 
   return (
-    <div className='max-w-[100vw] xl:px-48'>
-      <SlideshowLightbox
-        key={view}
-        theme={lightboxTheme}
-        images={lightboxImages}
-        lightboxIdentifier='lightbox'
-        framework='next'
-        modalClose='clickOutside'
-        imgAnimation='imgDrag'
-        showControls={false}
-        fullScreen
-        className={clsx({
-          'grid grid-cols-3 lg:grid-cols-4': view === 'grid',
-          'columns-2 gap-0 md:columns-3 md:gap-6 xl:columns-4':
-            view === 'waterfall',
-          'flex flex-col items-center': view === 'feed',
-        })}
-      >
-        {photos.map((photo) => {
-          const { width, height } = getAdjustedDimensions(
-            photo.width,
-            photo.height,
-          )
+    <>
+      <PhotoGallery
+        photos={photos as Photo[]}
+        view={view}
+        setIndex={setIndex}
+      />
 
-          const imageProps = {
-            className: clsx({
-              'h-[100px] object-cover transition-transform duration-300 ease-in-out hover:scale-105 md:h-[200px]':
-                view === 'grid',
-              'hover:shadow-xl md:rounded-xl': view === 'waterfall',
-              'xl:rounded-xl xl:shadow-outline xl:shadow-xl': view === 'feed',
-            }),
-            src: photo.url,
-            width,
-            height,
-            placeholder: 'blur',
-            blurDataURL: photo.blurData ?? '',
-            loading: 'lazy',
-            style:
-              view === 'grid' ? { objectFit: 'cover' as const } : undefined,
-            'data-lightboxjs': 'lightbox',
-          }
+      <PhotoLightbox
+        index={index}
+        slides={slides}
+        onClose={() => setIndex(-1)}
+        photos={photos as Photo[]}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchNextPage={fetchNextPage}
+      />
 
-          return view === 'waterfall' ? (
-            <CardContainer
-              containerClassName='py-0 md:mb-6'
-              key={photo.uuid}
-            >
-              <CardBody className='h-auto w-auto'>
-                <CardItem translateZ='50'>
-                  {/* @ts-expect-error*/}
-                  <Image
-                    {...imageProps}
-                    alt={photo.uuid}
-                  />
-                </CardItem>
-              </CardBody>
-            </CardContainer>
-          ) : (
-            <div
-              key={photo.uuid}
-              className='flex flex-col items-center'
-            >
-              {/* @ts-expect-error*/}
-              <Image
-                {...imageProps}
-                alt={photo.uuid}
-              />
-              {view === 'feed' && <PhotoInfo {...photo} />}
-            </div>
-          )
-        })}
-      </SlideshowLightbox>
       {isFetchingNextPage && (
         <div
-          className={clsx(
+          className={cn(
             'mb-5 flex justify-center',
             view !== 'feed' && 'mt-5 md:mt-10',
           )}
@@ -215,10 +321,12 @@ export function View() {
           <Loading />
         </div>
       )}
+
       <div
         ref={ref}
-        className='h-1 w-full'
+        className='h-20 w-full'
+        aria-hidden='true'
       />
-    </div>
+    </>
   )
 }

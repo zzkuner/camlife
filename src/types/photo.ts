@@ -28,3 +28,11 @@ export interface PhotoInfoProps {
   exposureCompensation?: number | null
   takenAtNaive?: string | null
 }
+
+export interface Photo extends Partial<ImageMetaData> {
+  uuid: string
+  url: string
+  width: number
+  height: number
+  blurData?: string
+}
