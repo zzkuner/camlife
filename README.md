@@ -51,10 +51,10 @@
 
 ## Inspired Projects
 
-- https://camarts.app
-- https://github.com/zhheo/TimePlus
-- https://github.com/sambecker/exif-photo-blog
-- https://github.com/besscroft/PicImpact
+- [Camarts](https://camarts.app)
+- [TimePlus](https://github.com/zhheo/TimePlus)
+- [exif-photo-blog](https://github.com/sambecker/exif-photo-blog)
+- [PicImpact](https://github.com/besscroft/PicImpact)
 
 ## Thanks Libraries
 
