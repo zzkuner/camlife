@@ -57,13 +57,13 @@ export function Tools() {
             />
           </Link>
           <LanguageSwitch />
-          <Link href='https://github.com/suno225SUN/camlife'>
+{/*           <Link href='https://github.com/suno225SUN/camlife'>
             <Github
               size={22}
               strokeWidth={2.25}
               absoluteStrokeWidth
             />
-          </Link>
+          </Link> */}
           <ThemeToggle />
         </div>
       </div>
